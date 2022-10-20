@@ -11,10 +11,52 @@ public class Board : MonoBehaviour
     [SerializeField]
     private LayerMask _tilesLayer;
 
+
+    private Piece _selectedPiece;
+    private List<Tile> _validTiles = new List<Tile>(0);
+
     public void Select(Tile tile)
     {
-        var piece = GetPieceAt(tile.transform.position);
-        piece?.Activate();        
+        DeactivateValidTiles();
+
+        if(_selectedPiece != null && _validTiles.Contains(tile))
+        {
+            var piece = GetPieceAt(tile.transform.position);
+            if( piece == null ||  piece.Player != _selectedPiece.Player)
+            {
+                piece?.Take();
+                _selectedPiece.Move(tile);
+            }
+            
+            ResetState();
+        }
+        else 
+        {
+            _selectedPiece = GetPieceAt(tile.transform.position);
+            _validTiles = _selectedPiece.GetValidTiles();
+        }
+
+        ActivateValidTiles();
+    }
+
+    private void ResetState()
+    {
+        _selectedPiece = null;
+        _validTiles.Clear();
+    }
+
+    private void ActivateValidTiles()
+    {
+        foreach (var tile in _validTiles)
+            tile.Highlight();                                                       
+    }
+
+    private void DeactivateValidTiles()
+    {
+        foreach (var tile in _validTiles)
+            tile.UnHighlight();
+
+
     }
 
     public Piece GetPieceAt(Vector3 worldPosition)
